@@ -8,9 +8,15 @@
 
 #include "NWeaponPrimaryAsset.generated.h"
 
+class ANWeapon;
+
 UCLASS()
 class NGAME_API UNWeaponPrimaryAsset : public UNPrimaryDataAsset
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere)
+	TSoftClassPtr<ANWeapon> SoftWeaponClass;
 	
 };

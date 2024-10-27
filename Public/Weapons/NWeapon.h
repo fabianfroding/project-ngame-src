@@ -21,4 +21,6 @@ public:
 	UNCrosshair* GetCrosshair() const { return Crosshair; }
 	void SetCrosshair(UNCrosshair* InCrossHair);
 
+	void ShowWeapon(const bool bShow);
+
 };

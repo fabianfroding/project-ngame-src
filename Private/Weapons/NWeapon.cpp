@@ -7,3 +7,8 @@ void ANWeapon::SetCrosshair(UNCrosshair* InCrossHair)
 	Crosshair = InCrossHair;
 	Crosshair->OwningWeapon = this;
 }
+
+void ANWeapon::ShowWeapon(const bool bShow)
+{
+
+}
