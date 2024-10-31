@@ -38,10 +38,12 @@ ANGameCharacter::ANGameCharacter()
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
-	HealthComponent = CreateDefaultSubobject<UNHealthComponent>(TEXT("NHealthComponent"));
 	PlayerWeaponsManagerComponent = CreateDefaultSubobject<UNPlayerWeaponsManagerComponent>(TEXT("PlayerWeaponsManagerComponent"));
-
+	
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	HealthComponent = CreateDefaultSubobject<UNHealthComponent>(TEXT("NHealthComponent"));
+
+	AbilitySystemComponent->OnComponentActivated.AddUniqueDynamic(this, &ANGameCharacter::OnAbilitySystemComponentInitialized);
 }
 
 void ANGameCharacter::OnDeath() const
@@ -66,9 +68,16 @@ void ANGameCharacter::BeginPlay()
 
 	if (IsValid(AbilitySystemComponent))
 	{
-		HealthAttributeSet = AbilitySystemComponent->GetSet<UNHealthAttributeSet>();
 		AbilityResourceAttributeSet = AbilitySystemComponent->GetSet<UNAbilityResourceAttributeSet>();
 	}
+}
+
+void ANGameCharacter::OnAbilitySystemComponentInitialized(UActorComponent* Component, bool bReset)
+{
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	check(ASC);
+	HealthComponent->InitializeWithAbilitySystem(ASC);
+	AbilitySystemComponent->OnComponentActivated.RemoveDynamic(this, &ANGameCharacter::OnAbilitySystemComponentInitialized);
 }
 
 void ANGameCharacter::Move(const FInputActionValue& Value)
@@ -111,6 +120,5 @@ void ANGameCharacter::OnComponentHit(UPrimitiveComponent* HitComp, AActor* Other
 	if (Cast<ANNPCPawnBase>(OtherActor))
 	{
 		UNHealthComponent::ApplyHealthDamage(this, nullptr, OtherActor, 1.f);
-		//HealthAttributeSet->Health
 	}
 }

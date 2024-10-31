@@ -91,6 +91,15 @@ bool UNPlayerWeaponsManagerComponent::AddWeapon(UNWeaponPrimaryAsset* WeaponPA)
 
 bool UNPlayerWeaponsManagerComponent::HasWeapon(UNWeaponPrimaryAsset* WeaponPA)
 {
+	// Checks if we already have a weapon coming from the specified asset.
+	for (int32 i = 0; i < WeaponSlots.Num(); i++)
+	{
+		UNWeaponPrimaryAsset* SlotWeapon = WeaponSlots[i];
+		if (SlotWeapon != nullptr && SlotWeapon->SoftWeaponClass == WeaponPA->SoftWeaponClass)
+		{
+			return true;
+		}
+	}
 	return false;
 }
 

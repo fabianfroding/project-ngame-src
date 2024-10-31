@@ -15,6 +15,9 @@ class NGAME_API ANWeaponPickup : public ANPickupBase
 {
 	GENERATED_BODY()
 
+public:
+	ANWeaponPickup();
+
 protected:
 
 	// The weapon that will be added to the player on pickup

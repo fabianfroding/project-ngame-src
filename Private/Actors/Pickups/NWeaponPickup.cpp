@@ -7,21 +7,30 @@
 #include "Pawns/NGameCharacter.h"
 #include "Pawns/Components/NPlayerWeaponsManagerComponent.h"
 
+ANWeaponPickup::ANWeaponPickup()
+{
+	PickupComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponPickupMeshComponent"));
+	CreatePickupCollider();
+}
+
 void ANWeaponPickup::BeginPlay()
 {
 	Super::BeginPlay();
-	SetChildrenLayersToDefault();
+	//SetChildrenLayersToDefault();
 }
 
 void ANWeaponPickup::OnPickedUp_Implementation(APlayerController* PlayerController)
 {
+	UE_LOG(LogTemp, Display, TEXT("ANWeaponPickup::OnPickedUp_Implementation: 1"));
 	if (!IsValid(PlayerController))
 		return;
 
+	UE_LOG(LogTemp, Display, TEXT("ANWeaponPickup::OnPickedUp_Implementation: 2"));
 	ANGameCharacter* NGameCharacter = Cast<ANGameCharacter>(PlayerController->GetPawn());
 	if (!IsValid(NGameCharacter))
 		return;
 	
+	UE_LOG(LogTemp, Display, TEXT("ANWeaponPickup::OnPickedUp_Implementation: 3"));
 	UNPlayerWeaponsManagerComponent* NPlayerWeaponsManagerComponent = NGameCharacter->FindComponentByClass<UNPlayerWeaponsManagerComponent>();
 	if (!IsValid(NPlayerWeaponsManagerComponent))
 	{
@@ -29,9 +38,11 @@ void ANWeaponPickup::OnPickedUp_Implementation(APlayerController* PlayerControll
 		return;
 	}
 	
+	UE_LOG(LogTemp, Display, TEXT("ANWeaponPickup::OnPickedUp_Implementation: 4"));
 	// Add the weapon and switch if no active weapon
 	if (NPlayerWeaponsManagerComponent->AddWeapon(WeaponPA))
 	{
+		UE_LOG(LogTemp, Display, TEXT("ANWeaponPickup::OnPickedUp_Implementation: 5"));
 		if (NPlayerWeaponsManagerComponent->GetActiveWeapon() == nullptr)
 			NPlayerWeaponsManagerComponent->SwitchWeapon(true);
 

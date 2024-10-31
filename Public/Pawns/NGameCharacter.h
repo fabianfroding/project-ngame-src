@@ -4,6 +4,7 @@
 #pragma once
 
 #include "AbilitySystemInterface.h"
+#include "Components/ActorComponent.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/NPawnBaseInterface.h"
@@ -42,9 +43,6 @@ protected:
 	//===== GAS Properties =====//
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
 	class UAbilitySystemComponent* AbilitySystemComponent;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
-	const class UNHealthAttributeSet* HealthAttributeSet;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
 	const class UNAbilityResourceAttributeSet* AbilityResourceAttributeSet;
@@ -100,6 +98,9 @@ public:
 
 protected:
 	virtual void BeginPlay();
+
+	UFUNCTION()
+	void OnAbilitySystemComponentInitialized(UActorComponent* Component, bool bReset);
 
 	void Move(const FInputActionValue& Value);
 

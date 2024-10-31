@@ -1,4 +1,5 @@
 // Copyright HungryHusky Games 2024
+// Contributor: Fabian
 
 #pragma once
 
@@ -15,40 +16,43 @@ class NGAME_API UNHealthComponent : public UActorComponent
 	GENERATED_BODY()
 
 private:
-	FTimerHandle InvulnerabilityTimer;
-	bool bIsInvulnerable = false; // TODO: Make to TMap for multiple invulnerability sources.
+	FTimerHandle InvulnerabilityFramesTimer;
+	TMap<FString, bool> InvulnerabilityMap;
 
 protected:
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
-	float CurrentHealth = 1.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+	class UAbilitySystemComponent* AbilitySystemComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+	const class UNHealthAttributeSet* HealthAttributeSet;
 
 	UPROPERTY(EditDefaultsOnly)
-	float InvulnerabilityDuration = 0.f;
+	float InvulnerabilityFramesDuration = 0.f;
 
 	UPROPERTY(EditDefaultsOnly)
 	TArray<USoundBase*> DamagedSounds;
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float MaxHealth = 1.f;
-
 	UPROPERTY(BlueprintAssignable)
 	FOnDamageTaken OnDamageTaken;
 
 public:	
 	UNHealthComponent();
-	virtual void BeginPlay() override;
 
-	bool GetIsInvulnerable() const { return bIsInvulnerable; }
-	void SetIsInvulnerable(bool bNewInvulnerable);
+	UFUNCTION(BlueprintPure)
+	static UNHealthComponent* FindHealthComponent(const AActor* Actor) 
+	{ return (Actor ? Actor->FindComponentByClass<UNHealthComponent>() : nullptr); }
 
-	float GetInvulnerabilityDuration() const { return InvulnerabilityDuration; }
+	UFUNCTION(BlueprintCallable)
+	void InitializeWithAbilitySystem(UAbilitySystemComponent* InASC);
 
-	void ResetInvulnerability() { bIsInvulnerable = false; }
+	bool IsInvulnerable() const;
+	void SetInvulnerability(const FString InvulnerabilityKey, const bool bNewInvulnerability);
+	float GetInvulnerabilityFramesDuration() const { return InvulnerabilityFramesDuration; }
+	void ResetInvulnerabilityFrames() { SetInvulnerability("InvulnerabilityFrames", false); }
 
-	bool IsAlive() const { return CurrentHealth > 0.f; }
-
-	bool IsAtFullHealth() const { return CurrentHealth < MaxHealth; }
+	bool IsAlive() const;
+	bool IsAtFullHealth() const;
 
 	void PlayDamagedSound();
 
@@ -57,9 +61,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	static void KillActor(AActor* ActorToKill);
-
-	UFUNCTION(BlueprintCallable)
-	static UNHealthComponent* GetHealthComponent(const AActor* OwningActor);
 
 	UFUNCTION(BlueprintCallable)
 	static void ApplyHealthDamage(AActor* DamagedActor, AController* Instigator, AActor* DamageCauser, float Damage);

@@ -34,18 +34,17 @@ protected:
 	//===== GAS Properties =====//
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
 	class UAbilitySystemComponent* AbilitySystemComponent;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
-	const class UNHealthAttributeSet* HealthAttributeSet;
 	//===== End GAS Properties =====//
 
 public:
 	ANNPCPawnBase();
 
-	UFUNCTION(BlueprintPure)
-	UNHealthComponent* GetHealthComponent() const { return HealthComponent; }
-
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComponent; }
 
 	void OnDeath() { Destroy(); }
+
+protected:
+	UFUNCTION()
+	void OnAbilitySystemComponentInitialized(UActorComponent* Component, bool bReset);
+
 };

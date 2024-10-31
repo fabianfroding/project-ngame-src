@@ -55,8 +55,15 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+    void CreatePickupCollider();
+
 	UFUNCTION(BlueprintNativeEvent)
 	void OnPickedUp(APlayerController* PlayerController);
     virtual void OnPickedUp_Implementation(APlayerController* PlayerController);
+
+    UFUNCTION()
+    void OnPickupColliderOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+        const FHitResult& SweepResult);
 
 };

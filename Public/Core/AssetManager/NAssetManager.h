@@ -17,11 +17,9 @@ public:
 	UFUNCTION(BlueprintPure)
 	static UNAssetManager* GetAssetManager();
 
-	// Tries to get preloaded object. If it fails, it will be loaded syncronously and may cause hitching.
 	UFUNCTION(BlueprintPure)
 	static UObject* LoadObjectFromSoftObjectPtr(TSoftObjectPtr<UObject> SoftObjectPtr);
 
-	// Tries to get preloaded class. If it fails, it will be loaded syncronously and may cause hitching.
 	UFUNCTION(BlueprintPure)
 	static UClass* LoadClassFromSoftClassPtr(TSoftClassPtr<UObject> SoftClassPtr);
 };
