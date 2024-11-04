@@ -12,6 +12,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameplayAbilitySystem/AttributeSets/NHealthAttributeSet.h"
 #include "GameplayAbilitySystem/AttributeSets/NAbilityResourceAttributeSet.h"
+#include "GameplayEffectTypes.h"
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
 #include "Pawns/Components/NHealthComponent.h"
@@ -64,7 +65,7 @@ void ANGameCharacter::BeginPlay()
 	}
 
 	if (IsValid(Mesh1P))
-		GetCapsuleComponent()->OnComponentHit.AddUniqueDynamic(this, &ANGameCharacter::OnComponentHit);
+		GetCapsuleComponent()->OnComponentHit.AddUniqueDynamic(this, &ANGameCharacter::OnPlayerCollideWithEnemy);
 
 	if (IsValid(AbilitySystemComponent))
 	{
@@ -115,10 +116,16 @@ void ANGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	}
 }
 
-void ANGameCharacter::OnComponentHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void ANGameCharacter::OnPlayerCollideWithEnemy(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (Cast<ANNPCPawnBase>(OtherActor))
-	{
-		UNHealthComponent::ApplyHealthDamage(this, nullptr, OtherActor, 1.f);
-	}
+	ANNPCPawnBase* NPCPawnBase = Cast<ANNPCPawnBase>(OtherActor);
+	if (!NPCPawnBase)
+		return;
+
+	if (NPCPawnBase->GetHostileCollideDamageAmount() <= 0.f)
+		return;
+
+	FGameplayEffectSpecHandle GESpecHandle = AbilitySystemComponent->MakeOutgoingSpec(HostileCollideGameplayEffect, 1.f, FGameplayEffectContextHandle());
+	GESpecHandle.Data->SetSetByCallerMagnitude(HostileCollideDataTag, -NPCPawnBase->GetHostileCollideDamageAmount());
+	HealthComponent->TakeDamage(GESpecHandle, OtherActor);
 }

@@ -31,6 +31,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	class UNDamageFlashComponent* DamageFlashComponent;
 
+	// Amount of damage this pawn inflicts on other pawns upon collission.
+	UPROPERTY(EditDefaultsOnly)
+	float HostileCollideDamageAmount = 1.f;
+
 	//===== GAS Properties =====//
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
 	class UAbilitySystemComponent* AbilitySystemComponent;
@@ -40,6 +44,8 @@ public:
 	ANNPCPawnBase();
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComponent; }
+
+	float GetHostileCollideDamageAmount() const { return HostileCollideDamageAmount; }
 
 	void OnDeath() { Destroy(); }
 

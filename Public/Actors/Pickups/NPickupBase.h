@@ -36,7 +36,7 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     UParticleSystem* PickupVfxPrefab;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
     UPrimitiveComponent* PickupComponent;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

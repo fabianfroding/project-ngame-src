@@ -5,6 +5,7 @@
 
 #include "Core/AssetManager/NAssetmanager.h"
 #include "Core/AssetManager/NWeaponPrimaryAsset.h"
+#include "InputMappingContext.h"
 #include "Weapons/NWeapon.h"
 
 UNPlayerWeaponsManagerComponent::UNPlayerWeaponsManagerComponent()
@@ -45,14 +46,25 @@ bool UNPlayerWeaponsManagerComponent::AddWeapon(UNWeaponPrimaryAsset* WeaponPA)
 		if (WeaponSlots[i] == nullptr)
 		{
 			UWorld* const World = GetWorld();
-			TSubclassOf<ANWeapon> WeaponClass = UNAssetManager::LoadClassFromSoftClassPtr(WeaponPA->SoftWeaponClass);
+			TSubclassOf<UNWeapon> WeaponClass = UNAssetManager::LoadClassFromSoftClassPtr(WeaponPA->SoftWeaponClass);
 
 			if (World != nullptr && WeaponClass != nullptr)
 			{
+				if (ANGameCharacter* NGameCharacter = Cast<ANGameCharacter>(GetOwner()))
+				{
+					UNWeapon* Weapon = NewObject<UNWeapon>(NGameCharacter, WeaponClass);
+					if (IsValid(Weapon))
+					{
+						Weapon->RegisterComponent();
+						Weapon->WeaponSettings = WeaponPA->WeaponSettings;
+						Weapon->AttachWeapon(NGameCharacter);
+					}
+				}
+
 				// Spawn weapon object as child of the weapon socket.
-				FActorSpawnParameters SpawnParams;
+				/*FActorSpawnParameters SpawnParams;
 				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-				ANWeapon* SpawnedWeapon = World->SpawnActor<ANWeapon>(WeaponClass, SpawnParams); // TODO: Spawn at transform "WeaponParentSocket".
+				UNWeapon* SpawnedWeapon = World->SpawnActor<ANWeapon>(WeaponClass, SpawnParams); // TODO: Spawn at transform "WeaponParentSocket".
 				SpawnedWeapon->SetActorRelativeLocation(FVector::ZeroVector);
 				SpawnedWeapon->SetActorRelativeRotation(FRotator::ZeroRotator);
 
@@ -70,7 +82,7 @@ bool UNPlayerWeaponsManagerComponent::AddWeapon(UNWeaponPrimaryAsset* WeaponPA)
 						PrimitiveComponent->SetCollisionObjectType(FPSWeaponCollisionChannel);
 						PrimitiveComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 					}
-				}
+				}*/
 
 				WeaponSlots[i] = WeaponPA;
 
@@ -113,7 +125,7 @@ UNWeaponPrimaryAsset* UNPlayerWeaponsManagerComponent::GetActiveWeapon()
 	return nullptr;
 }
 
-void UNPlayerWeaponsManagerComponent::OnWeaponSwitched(ANWeapon* NewWeapon)
+void UNPlayerWeaponsManagerComponent::OnWeaponSwitched(UNWeapon* NewWeapon)
 {
 	if (NewWeapon != nullptr)
 		NewWeapon->ShowWeapon(true);

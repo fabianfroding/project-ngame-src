@@ -1,7 +1,10 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Projectiles/NGameProjectile.h"
+
+#include "AbilitySystemComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "GameplayEffectTypes.h"
 #include "Components/SphereComponent.h"
 #include <Pawns/Components/NHealthComponent.h>
 #include "Pawns/NGameCharacter.h"
@@ -33,7 +36,20 @@ void ANGameProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, U
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
 	{
 		//OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
-		UNHealthComponent::ApplyHealthDamage(Hit.GetActor(), nullptr, GetInstigator(), 1.f);
+		UNHealthComponent* HitHealthComponent = UNHealthComponent::FindHealthComponent(Hit.GetActor());
+		if (HitHealthComponent == nullptr)
+			return;
+
+		UAbilitySystemComponent* AbilitySystemComponent = HitHealthComponent->GetAbilitySystemComponent();
+		if (AbilitySystemComponent == nullptr)
+			return;
+		
+		FGameplayEffectSpecHandle GESpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
+			ProjectileDamageGameplayEffect, 1.f, FGameplayEffectContextHandle());
+
+		GESpecHandle.Data->SetSetByCallerMagnitude(ProjectileDamageDataTag, -1.f); // TODO: Add ProjectileDamageAmount and use it instead of -1.f.
+		HitHealthComponent->TakeDamage(GESpecHandle, GetInstigator());
+		
 		Destroy();
 	}
 }

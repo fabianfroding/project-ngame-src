@@ -1,4 +1,5 @@
 // Copyright HungryHusky Games 2024
+// Contributor: Fabian
 
 #include "Weapons/NWeapon.h"
 
@@ -9,13 +10,14 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "InputMappingContext.h"
 
-ANWeapon::ANWeapon()
+UNWeapon::UNWeapon()
 {
-	MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
+	WeaponSettings.MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
 }
 
-void ANWeapon::AttachWeapon(ANGameCharacter* TargetCharacter)
+void UNWeapon::AttachWeapon(ANGameCharacter* TargetCharacter)
 {
 	Character = TargetCharacter;
 
@@ -32,22 +34,23 @@ void ANWeapon::AttachWeapon(ANGameCharacter* TargetCharacter)
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			// Set the priority of the mapping to 1, so that it overrides the Jump action with the Fire action when using touch input
-			Subsystem->AddMappingContext(FireMappingContext, 1);
+			Subsystem->AddMappingContext(WeaponSettings.FireMappingContext, 1);
 		}
 
 		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
 		{
-			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &ANWeapon::Fire);
+			EnhancedInputComponent->BindAction(WeaponSettings.FireAction, ETriggerEvent::Triggered, this, &UNWeapon::Fire);
 		}
 	}
 }
 
-void ANWeapon::Fire()
+void UNWeapon::Fire()
 {
+	UE_LOG(LogTemp, Warning, TEXT("UNWeapon::AttachWeapon:Fire"));
 	if (Character == nullptr || Character->GetController() == nullptr)
 		return;
 
-	if (ProjectileClass != nullptr)
+	if (WeaponSettings.ProjectileClass != nullptr)
 	{
 		UWorld* const World = GetWorld();
 		if (World != nullptr)
@@ -55,37 +58,37 @@ void ANWeapon::Fire()
 			APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
 			const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
 			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-			const FVector SpawnLocation = GetOwner()->GetActorLocation() + SpawnRotation.RotateVector(MuzzleOffset);
+			const FVector SpawnLocation = GetOwner()->GetActorLocation() + SpawnRotation.RotateVector(WeaponSettings.MuzzleOffset);
 
 			FActorSpawnParameters ActorSpawnParams;
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 			ActorSpawnParams.Instigator = Character;
 
-			World->SpawnActor<ANGameProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+			World->SpawnActor<ANGameProjectile>(WeaponSettings.ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
 		}
 	}
 
-	if (FireSound != nullptr)
+	if (WeaponSettings.FireSound != nullptr)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, FireSound, Character->GetActorLocation());
+		UGameplayStatics::PlaySoundAtLocation(this, WeaponSettings.FireSound, Character->GetActorLocation());
 	}
 
-	if (FireAnimation != nullptr)
+	if (WeaponSettings.FireAnimation != nullptr)
 	{
 		UAnimInstance* AnimInstance = Character->GetMesh1P()->GetAnimInstance();
 		if (AnimInstance != nullptr)
 		{
-			AnimInstance->Montage_Play(FireAnimation, 1.f);
+			AnimInstance->Montage_Play(WeaponSettings.FireAnimation, 1.f);
 		}
 	}
 }
 
-void ANWeapon::ShowWeapon(const bool bShow)
+void UNWeapon::ShowWeapon(const bool bShow)
 {
 
 }
 
-void ANWeapon::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void UNWeapon::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	if (Character == nullptr)
 		return;
@@ -94,7 +97,7 @@ void ANWeapon::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			Subsystem->RemoveMappingContext(FireMappingContext);
+			Subsystem->RemoveMappingContext(WeaponSettings.FireMappingContext);
 		}
 	}
 }

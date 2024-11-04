@@ -8,10 +8,10 @@
 
 #include "NPlayerWeaponsManagerComponent.generated.h"
 
-class ANWeapon;
+class UNWeapon;
 class UNWeaponPrimaryAsset;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSwitchedToWeapon, ANWeapon*, Weapon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSwitchedToWeapon, UNWeapon*, Weapon);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAddedWeapon, UNWeaponPrimaryAsset*, WeaponPrimaryAsset, int32, SlotIndex);
 
 UENUM(BlueprintType)
@@ -62,7 +62,7 @@ public:
 	UNWeaponPrimaryAsset* GetActiveWeapon();
 
 	UFUNCTION()
-	void OnWeaponSwitched(ANWeapon* NewWeapon);
+	void OnWeaponSwitched(UNWeapon* NewWeapon);
 
 protected:
 	virtual void BeginPlay() override;

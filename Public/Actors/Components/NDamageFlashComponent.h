@@ -42,8 +42,8 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void OnDamageTaken();
-	void OnDamageTaken_Implementation();
+	void OnDamaged(float DamageAmount, AActor* DamageSource);
+	void OnDamaged_Implementation(float DamageAmount, AActor* DamageSource);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void ResetFlashMaterial();

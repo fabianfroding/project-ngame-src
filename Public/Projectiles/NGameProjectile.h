@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GameplayTagContainer.h"
 
 #include "NGameProjectile.generated.h"
 
+class UGameplayEffect;
 class USphereComponent;
 class UProjectileMovementComponent;
 
@@ -16,6 +18,12 @@ class ANGameProjectile : public AActor
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS")
+	TSubclassOf<UGameplayEffect> ProjectileDamageGameplayEffect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS")
+	FGameplayTag ProjectileDamageDataTag;
+
 	UPROPERTY(VisibleDefaultsOnly, Category=Projectile)
 	USphereComponent* CollisionComp;
 

@@ -4,6 +4,7 @@
 #include "Pawns/Components/NHealthComponent.h"
 
 #include "GameplayAbilitySystem/AttributeSets/NHealthAttributeSet.h"
+#include "GameplayEffect.h"
 #include "Kismet/GameplayStatics.h"
 #include "Pawns/NGameCharacter.h"
 #include "Pawns/NNPCPawnBase.h"
@@ -72,10 +73,25 @@ bool UNHealthComponent::IsAtFullHealth() const
 	return HealthAttributeSet->GetHealth() >= HealthAttributeSet->GetMaxHealth();
 }
 
-void UNHealthComponent::PlayDamagedSound()
+void UNHealthComponent::PlayOnDamagedFeedback()
 {
-	if (IsValid(GetOwner()) && !DamagedSounds.IsEmpty())
-		UGameplayStatics::PlaySoundAtLocation(this, DamagedSounds[FMath::RandRange(0, DamagedSounds.Num() - 1)], GetOwner()->GetActorLocation());
+	if (ChanceToPlayDamagedSounds <= 0.f)
+		return;
+
+	if (DamagedSounds.IsEmpty())
+		return;
+
+	const AActor* OwningActor = GetOwner();
+	if (!IsValid(OwningActor))
+		return;
+
+	const int32 RandomizedIndex = FMath::RandRange(0, DamagedSounds.Num() - 1);
+	if (!DamagedSounds.IsValidIndex(RandomizedIndex))
+		return;
+
+	USoundBase* RandomizedSound = DamagedSounds[RandomizedIndex];
+
+	UGameplayStatics::PlaySoundAtLocation(this, RandomizedSound, OwningActor->GetActorLocation());
 }
 
 void UNHealthComponent::Heal(float HealAmount)
@@ -107,44 +123,43 @@ void UNHealthComponent::KillActor(AActor* ActorToKill)
 	}
 }
 
-void UNHealthComponent::ApplyHealthDamage(AActor* DamagedActor, AController* Instigator, AActor* DamageCauser, float Damage)
+void UNHealthComponent::TakeDamage(FGameplayEffectSpecHandle GameplayEffectSpecHandle, AActor* DamageSource)
 {
-	UNHealthComponent* HealthComp = FindHealthComponent(DamagedActor);
-	if (IsValid(HealthComp))
+	if (IsInvulnerable())
+		return;
+
+	const float HealthBefore = HealthAttributeSet->GetHealth();
+
+	if (GameplayEffectSpecHandle.IsValid())
 	{
-		if (HealthComp->IsInvulnerable() || !HealthComp->IsAlive())
-			return;
+		AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*GameplayEffectSpecHandle.Data.Get());
 
-		//HealthComp->CurrentHealth = FMath::Max(HealthComp->CurrentHealth - Damage, 0.f);
-		HealthComp->OnDamageTaken.Broadcast();
-		HealthComp->PlayDamagedSound();
-
-		if (HealthComp->HealthAttributeSet->GetHealth() <= 0.f)
+		float TrueDamageAmount = HealthBefore - FMath::Clamp(HealthAttributeSet->GetHealth(), 0.f, HealthAttributeSet->GetMaxHealth());
+		if (TrueDamageAmount > 0.f)
 		{
-			UNHealthComponent::KillActor(DamagedActor);
-			return;
+			PlayOnDamagedFeedback();
+			OnDamaged.Broadcast(TrueDamageAmount, DamageSource);
 		}
 
-		if (HealthComp->GetInvulnerabilityFramesDuration() > 0.f)
+		if (InvulnerabilityFramesDuration > 0.f)
 		{
-			HealthComp->SetInvulnerability("InvulnerabilityFrames", true);
-			HealthComp->GetWorld()->GetTimerManager().SetTimer(
-				HealthComp->InvulnerabilityFramesTimer, 
-				HealthComp, 
-				&UNHealthComponent::ResetInvulnerabilityFrames, 
-				HealthComp->InvulnerabilityFramesDuration, false);
-		}
-
-		if (IsValid(DamageCauser))
-		{
-			// TODO: This should be more abstracted.
-			if (ANGameCharacter* NGameCharacter = Cast<ANGameCharacter>(DamageCauser))
+			UWorld* World = GetWorld();
+			if (IsValid(World))
 			{
-				FNDamageEventData DamageEventData;
-				DamageEventData.DamageAmount = Damage;
-				DamageEventData.DamagedActor = DamagedActor;
-				NGameCharacter->OnPlayerDealtDamage.Broadcast(DamageEventData);
+				SetInvulnerability(InvulnerabilityFramesKey, true);
+				World->GetTimerManager().SetTimer(InvulnerabilityFramesTimer, this, &UNHealthComponent::ResetInvulnerabilityFrames, InvulnerabilityFramesDuration, false);
 			}
 		}
+
+		HandleDeath();
 	}
+}
+
+void UNHealthComponent::HandleDeath()
+{
+	if (!IsAlive())
+		return;
+
+	if (HealthAttributeSet->GetHealth() <= 0.f)
+		OnDie.Broadcast();
 }

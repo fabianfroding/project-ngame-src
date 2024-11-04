@@ -5,10 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "Core/AssetManager/NPrimaryDataAsset.h"
+#include "Weapons/NWeapon.h"
 
 #include "NWeaponPrimaryAsset.generated.h"
-
-class ANWeapon;
 
 UCLASS()
 class NGAME_API UNWeaponPrimaryAsset : public UNPrimaryDataAsset
@@ -16,7 +15,10 @@ class NGAME_API UNWeaponPrimaryAsset : public UNPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere)
-	TSoftClassPtr<ANWeapon> SoftWeaponClass;
+	UPROPERTY(EditDefaultsOnly)
+	TSoftClassPtr<UNWeapon> SoftWeaponClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	FWeaponSettings WeaponSettings;
 	
 };

@@ -8,7 +8,11 @@
 
 #include "NHealthComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDamageTaken);
+class UAbilitySystemComponent;
+class UGameplayEffect;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDie);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDamaged, float, DamageAmount, AActor*, DamageSource);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class NGAME_API UNHealthComponent : public UActorComponent
@@ -19,22 +23,32 @@ private:
 	FTimerHandle InvulnerabilityFramesTimer;
 	TMap<FString, bool> InvulnerabilityMap;
 
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
-	class UAbilitySystemComponent* AbilitySystemComponent;
+	const FString InvulnerabilityFramesKey = "InvulnerabilityFrames";
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+protected:
+	//===== GAS Properties =====//
+	UPROPERTY(BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+	UAbilitySystemComponent* AbilitySystemComponent;
+
+	UPROPERTY(BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
 	const class UNHealthAttributeSet* HealthAttributeSet;
+	//===== End GAS Properties =====//
 
 	UPROPERTY(EditDefaultsOnly)
 	float InvulnerabilityFramesDuration = 0.f;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "NHealthComponent|Audio")
+	float ChanceToPlayDamagedSounds = 1.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "NHealthComponent|Audio")
 	TArray<USoundBase*> DamagedSounds;
 
 public:
 	UPROPERTY(BlueprintAssignable)
-	FOnDamageTaken OnDamageTaken;
+	FOnDie OnDie;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnDamaged OnDamaged;
 
 public:	
 	UNHealthComponent();
@@ -46,15 +60,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void InitializeWithAbilitySystem(UAbilitySystemComponent* InASC);
 
+	UAbilitySystemComponent* GetAbilitySystemComponent() const { return AbilitySystemComponent; }
+
 	bool IsInvulnerable() const;
 	void SetInvulnerability(const FString InvulnerabilityKey, const bool bNewInvulnerability);
 	float GetInvulnerabilityFramesDuration() const { return InvulnerabilityFramesDuration; }
-	void ResetInvulnerabilityFrames() { SetInvulnerability("InvulnerabilityFrames", false); }
+	void ResetInvulnerabilityFrames() { SetInvulnerability(InvulnerabilityFramesKey, false); }
 
 	bool IsAlive() const;
 	bool IsAtFullHealth() const;
 
-	void PlayDamagedSound();
+	void PlayOnDamagedFeedback();
 
 	UFUNCTION(BlueprintCallable)
 	void Heal(float HealAmount);
@@ -63,5 +79,8 @@ public:
 	static void KillActor(AActor* ActorToKill);
 
 	UFUNCTION(BlueprintCallable)
-	static void ApplyHealthDamage(AActor* DamagedActor, AController* Instigator, AActor* DamageCauser, float Damage);
+	void TakeDamage(FGameplayEffectSpecHandle GameplayEffectSpecHandle, AActor* DamageSource);
+
+	void HandleDeath();
+
 };

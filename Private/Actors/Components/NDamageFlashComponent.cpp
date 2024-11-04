@@ -19,10 +19,10 @@ void UNDamageFlashComponent::BeginPlay()
 		return;
 
 	if (UNHealthComponent* HealthComponent = Cast<UNHealthComponent>(OwningActor->GetComponentByClass(UNHealthComponent::StaticClass())))
-		HealthComponent->OnDamageTaken.AddUniqueDynamic(this, &UNDamageFlashComponent::OnDamageTaken);
+		HealthComponent->OnDamaged.AddUniqueDynamic(this, &UNDamageFlashComponent::OnDamaged);
 }
 
-void UNDamageFlashComponent::OnDamageTaken_Implementation()
+void UNDamageFlashComponent::OnDamaged_Implementation(float DamageAmount, AActor* DamageSource)
 {
 	GetWorld()->GetTimerManager().SetTimer(ResetFlashTimerHandle, this, &UNDamageFlashComponent::ResetFlashMaterial, FlashDuration, false);
 }

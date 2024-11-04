@@ -1,4 +1,5 @@
 // Copyright HungryHusky Games 2024
+// Contributor: Fabian
 
 #pragma once
 
@@ -9,13 +10,10 @@
 
 #include "NWeapon.generated.h"
 
-UCLASS()
-class NGAME_API ANWeapon : public AActor
+USTRUCT(BlueprintType)
+struct FWeaponSettings
 {
 	GENERATED_BODY()
-
-private:
-	ANGameCharacter* Character;
 
 public:
 	UPROPERTY(EditDefaultsOnly)
@@ -35,9 +33,22 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* FireAction;
+};
+
+UCLASS(Blueprintable, BlueprintType, meta = (BlueprintSpawnableComponent))
+class NGAME_API UNWeapon : public USkeletalMeshComponent
+{
+	GENERATED_BODY()
+
+private:
+	ANGameCharacter* Character;
 
 public:
-	ANWeapon();
+	UPROPERTY(EditDefaultsOnly)
+	FWeaponSettings WeaponSettings;
+
+public:
+	UNWeapon();
 
 	UFUNCTION(BlueprintCallable)
 	void AttachWeapon(ANGameCharacter* TargetCharacter);

@@ -24,12 +24,17 @@ class NGAME_API UNDashAttributeSet : public UAttributeSet
 	GENERATED_BODY()
 
 	UPROPERTY()
+	FGameplayAttributeData AvailableDashes = 2.0f;
+	ATTRIBUTE_ACCESSORS(UNDashAttributeSet, AvailableDashes)
+	
+	UPROPERTY()
+	FGameplayAttributeData MaxAvailableDashes = 2.0f;
+	ATTRIBUTE_ACCESSORS(UNDashAttributeSet, MaxAvailableDashes)
+
+	UPROPERTY()
 	FGameplayAttributeData Duration = 0.2f;
 	ATTRIBUTE_ACCESSORS(UNDashAttributeSet, Duration)
 
-	UPROPERTY()
-	FGameplayAttributeData Cooldown = 1.0f;
-	ATTRIBUTE_ACCESSORS(UNDashAttributeSet, Cooldown)
 
 
 
